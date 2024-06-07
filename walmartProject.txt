@@ -1,0 +1,269 @@
+
+-- Create table
+CREATE TABLE IF NOT EXISTS sales(
+	invoice_id VARCHAR(30) NOT NULL PRIMARY KEY,
+    branch VARCHAR(5) NOT NULL,
+    city VARCHAR(30) NOT NULL,
+    customer_type VARCHAR(30) NOT NULL,
+    gender VARCHAR(30) NOT NULL,
+    product_line VARCHAR(100) NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    quantity INT NOT NULL,
+    tax_pct FLOAT(6,4) NOT NULL,
+    total DECIMAL(12, 4) NOT NULL,
+    date DATE NOT NULL,
+    time TIME NOT NULL,
+    payment VARCHAR(15) NOT NULL,
+    cogs DECIMAL(10,2) NOT NULL,
+    gross_margin_pct FLOAT(11,9),
+    gross_income DECIMAL(12, 4),
+    rating FLOAT(3, 1)
+);
+
+-- Data cleaning
+SELECT
+	*
+FROM sales;
+
+
+-- Add the time_of_day column
+SELECT
+	time,
+	(CASE
+		WHEN `time` BETWEEN "00:00:00" AND "12:00:00" THEN "Morning"
+        WHEN `time` BETWEEN "12:01:00" AND "16:00:00" THEN "Afternoon"
+        ELSE "Evening"
+    END) AS time_of_day
+FROM sales;
+
+
+ALTER TABLE sales ADD COLUMN time_of_day VARCHAR(20);
+
+UPDATE sales
+SET time_of_day = (
+	CASE
+		WHEN `time` BETWEEN "00:00:00" AND "12:00:00" THEN "Morning"
+        WHEN `time` BETWEEN "12:01:00" AND "16:00:00" THEN "Afternoon"
+        ELSE "Evening"
+    END
+);
+
+-- -----------------------------------------------------------------------------------------------------------
+-- --- day_name 
+select * from sales;
+SELECT
+	date,
+	DAYNAME(date) as day_name
+FROM sales;
+
+alter table sales add column day_name varchar(10);
+
+update sales
+set day_name = dayname(date);
+-- --------------------------------------------------------------------------------------------------------------
+
+-- --------- month name -----------------------
+select * from sales;
+select date,
+  monthname(date) as month_name
+  from sales;
+
+alter table sales add column month_name varchar(15);
+
+update sales 
+set month_name =  monthname(date) ;
+-- ---------------------------------------------------------------------------------------------------------------
+
+-- -----------------------generic analysis ------------------------------
+
+--       number of unquie cities 
+select distinct city from sales;
+-- --------------------------------------------------------------------------------------------
+--        number of branches 
+select distinct branch from sales;
+-- -----------------------------------------------------------------------------------------
+
+-- ------------------ products analysis ----------------------------
+
+-- number of product lines 
+select count( distinct product_line ) as number_of_disc_prod from sales;
+-- ------------------------------------------------------------------------------------------------------
+-- most common payment method 
+select payment , count(payment)  as count from sales 
+group by payment
+order by count desc;
+
+--  highesdt selling producr 
+select distinct product_line , count(product_line)  as products from sales
+group by product_line
+order by products desc;
+-- ----------------------------------------------------------------------------------
+--  total revenue by month 
+select month_name , sum(total) as total_revenue from sales
+group by month_name
+order by total_revenue desc;
+-- -------------------------------------------------------------------------------------
+-- month with higest cost of goods 
+select month_name , sum(cogs) as cogs from sales 
+group by month_name
+order by cogs desc ;
+-- --------------------------------------------------------------------------------------
+-- product line with highest revnue 
+select product_line, sum(total) as total_rev from sales
+group by product_line
+order by total_rev desc;
+-- --------------------------------------------------------------------------------------
+-- city with the largest revenue 
+select city, branch, sum(total) as total_rev from sales
+group by city, branch
+order by total_rev desc;
+-- ---------------------------------------------------------------------------------------
+-- product line with highest value added tax
+select product_line, avg(tax_pct) as vat from sales
+group by product_line
+order by vat desc;
+-- ----------------------------------------------------------------------------------------
+-- which branch sales  more products by product_line 
+select product_line ,branch,  sum(quantity) as quantity from sales 
+group by branch, product_line
+order by product_line desc;
+-- ------------------------------------------------------------------------------------
+-- purchse by gender 
+select gender, product_line , count(gender) as total_cnt from sales
+group by gender,product_line 
+order by gender ;
+-- ------------------------------------------------------------------------------------
+-- avarage rating of each product line 
+select round(avg(rating), 1)as avg_rating, product_line from sales
+group by product_line 
+order by avg_rating desc;
+-- -----------------------------------------------------------------------------------
+-- ------------------------ sales -------------------------------
+-- total sales by time of day for each day 
+select  time_of_day, count(*) as total_sales from sales
+where day_name = 'monday'
+group by time_of_day
+order by total_sales desc;
+-- -----------------------------------------------------------------------------------------
+-- customer type that brings most revenue by gender 
+select customer_type , gender, sum(total) as total_rev from sales 
+group by customer_type , gender
+order by total_rev desc;
+-- ------------------------------------------------------------------------------------------
+
+-- city , customer_type and gender  with highest VAT 
+select city, customer_type, gender, avg(tax_pct) as city_avg_vat, sum(tax_pct) as city_total_vat from sales 
+group by city, customer_type, gender
+order by city_avg_vat desc;
+-- ------------------------------------------------------------------------------------------
+-- ------------------customer--------------------
+-- number of disticnt customer 
+select distinct customer_type , count(*) as customer_cnt from sales
+group by customer_type
+order by customer_cnt desc;
+-- ------------------------------------------------------------------------------------------------
+-- gender distribution by branch 
+select city ,branch , gender , count(gender) as gender_cnt from sales 
+group by city, branch, gender
+order by gender_cnt desc;
+-- -----------------------------------------------------------------------------------------------
+-- average time of rating by gender for each branch 
+select gender, time_of_day, avg(rating) as avg_rating , branch,product_line,customer_type from sales
+group by gender, time_of_day, branch, branch,product_line,customer_type 
+order by avg_rating desc;
+-- ---------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
